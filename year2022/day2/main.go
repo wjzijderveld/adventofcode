@@ -2,39 +2,96 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/wjzijderveld/adventofcode/year2022"
 )
 
+type RPS int
+
 const (
-	Rock = iota
+	Rock RPS = iota
 	Paper
 	Scissors
 )
+
+func (r RPS) LoosesFrom() RPS {
+	switch r {
+	case Rock:
+		return Paper
+	case Paper:
+		return Scissors
+	case Scissors:
+		return Rock
+	}
+	panic("invalid RPS")
+}
+
+func (r RPS) WinsFrom() RPS {
+	switch r {
+	case Rock:
+		return Scissors
+	case Paper:
+		return Rock
+	case Scissors:
+		return Paper
+	}
+	panic("invalid RPS")
+}
+
+func (r RPS) String() string {
+	switch r {
+	case Rock:
+		return "Rock"
+	case Paper:
+		return "Paper"
+	case Scissors:
+		return "Scissors"
+	}
+	panic("invalid RPS")
+
+}
 
 // A = Rock
 // B = Paper
 // C = Scissors
 
-// X = Rock
-// Y = Paper
-// Z = Scissors
+// X = Lose
+// Y = Draw
+// Z = Win
 func main() {
 	totalScore := 0
 	for line := range year2022.GetInputLines(2022, 2) {
-		rpc := strings.Fields(line)
-		if len(rpc) != 2 {
+		rps := strings.Fields(line)
+		if len(rps) != 2 {
 			panic("invalid rock, paper scissor input")
 		}
 
-		totalScore += getScore(normalize(rpc[0]), normalize(rpc[1]))
+		op := normalize(rps[0])
+		var needs RPS
+		switch rps[1] {
+		case "X":
+			needs = op.WinsFrom()
+		case "Y":
+			needs = op
+		case "Z":
+			needs = op.LoosesFrom()
+		default:
+			panic("invalid: " + rps[1])
+		}
+
+		score := getScore(op, needs)
+		if os.Getenv("DEBUG") == "true" {
+			fmt.Printf("Round %s (%s vs %s): %d\n", line, op.String(), needs.String(), score)
+		}
+		totalScore += score
 	}
 
 	fmt.Printf("Total score: %d\n", totalScore)
 }
 
-func getScore(op int, you int) int {
+func getScore(op RPS, you RPS) int {
 	base := scoreForSign(you)
 	if op == you {
 		return base + 3
@@ -53,7 +110,7 @@ func getScore(op int, you int) int {
 	return base
 }
 
-func scoreForSign(sign int) int {
+func scoreForSign(sign RPS) int {
 	switch sign {
 	case Rock:
 		return 1
@@ -66,7 +123,7 @@ func scoreForSign(sign int) int {
 	panic("invalid: " + string(sign))
 }
 
-func normalize(given string) int {
+func normalize(given string) RPS {
 	switch given {
 	case "A", "X":
 		return Rock
