@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/wjzijderveld/adventofcode/year2022"
@@ -10,12 +11,11 @@ import (
 func main() {
 	lines := year2022.GetInputLines(2022, 1)
 
-	maxBeingCarried, currentElfCarries := 0, 0
+	var carriedPerElf []int
+	currentElfCarries := 0
 	for line := range lines {
 		if line == "" {
-			if currentElfCarries > maxBeingCarried {
-				maxBeingCarried = currentElfCarries
-			}
+			carriedPerElf = append(carriedPerElf, currentElfCarries)
 			currentElfCarries = 0
 			continue
 		}
@@ -28,5 +28,14 @@ func main() {
 		currentElfCarries += int(calories)
 	}
 
-	fmt.Printf("Most that's being carried: %d\n", maxBeingCarried)
+	sort.Ints(carriedPerElf)
+	topThree := carriedPerElf[len(carriedPerElf)-3:]
+
+	sum := 0
+	for _, x := range topThree {
+		sum += x
+	}
+
+	fmt.Printf("Most that's being carried: %d\n", topThree[2])
+	fmt.Printf("Top three being carried: %d\n", sum)
 }
