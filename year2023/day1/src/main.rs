@@ -18,9 +18,6 @@ fn main() {
         }
     };
 
-    // let number_words = vec!["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    // let inversed_number_words = vec!["eno", "owt", "eerht", "ruof", "evif", "xis", "neves", "thgie", "enin"];
-    // let number_strings = vec!["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     let needles = vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
     let mut total: u32 = 0;
     for line in input.lines().into_iter() {
@@ -51,32 +48,6 @@ fn main() {
         let parsed_number = [first_nr, last_nr].concat().parse::<u32>().unwrap();
         println!("Line: {} => {} {} = {}", line, first_matches[0].1, last_matches[0].1, parsed_number);
         total += parsed_number
-        /*
-        let mut number: String = "".to_owned();
-        for (i, nr) in [number_words.clone(), number_strings.clone()].concat().iter().enumerate() {
-            let index = match line.find(nr) {
-                Some(_) => i,
-                None => continue,
-            };
-            number.push_str(number_strings[if index >= 9 { index - 9 } else { index }]);
-            println!("First: {}", index);
-            break;
-        }
-        for (i, nr) in [inversed_number_words.clone(), number_strings.clone()].concat().iter().enumerate() {
-            let reversed_line = line.chars().rev().collect::<String>();
-            println!("finding {} in {}", nr, reversed_line);
-            let index = match reversed_line.find(nr) {
-                Some(_) => i,
-                None => continue,
-            };
-            println!("Index: {}", index);
-            number.push_str(number_strings[if index >= 9 { index - 9 } else { index }]);
-            println!("Last: {}", number_strings[if index >= 9 { index - 9 } else { index }]);
-            break;
-        }
-        println!("Number: {}", number);
-        total = total + number.parse::<u32>().unwrap();
-        */
     }
     println!("Got number: {}", total);
 }
