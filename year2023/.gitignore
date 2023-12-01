@@ -1,0 +1,7 @@
+debug/
+target/
+
+Cargo.lock
+
+# backup files for rustfmt
+**/*.rs.bk
