@@ -45,9 +45,11 @@ fn main() {
 
     // now we can answer questions
     let q1 = Round{blue: 14, red: 12, green: 13};
-    let filtered_games: Vec<Game> = games.into_iter().filter(|g| g.possible_for(&q1) ).collect();
-    let sum: usize = filtered_games.into_iter().map(|g| g.id).sum();
+    let filtered_games: Vec<&Game> = games.iter().filter(|g| g.possible_for(&q1) ).collect();
+    let sum: usize = filtered_games.iter().map(|g| g.id).sum();
     println!("Sum of possible games: {}", sum);
+
+    println!("Sum of the power of possible sets: {}", games.iter().map(|g| -> usize { g.max_round_possible().get_power() }).sum::<usize>())
 }
 
 #[derive(Debug)]
@@ -77,5 +79,31 @@ impl Game {
             }
         }
         return true;
+    }
+
+    fn max_round_possible(&self) -> Round {
+        let mut max_round = Round{
+            blue: 0,
+            red: 0,
+            green: 0,
+        };
+        for r in self.rounds.iter() {
+            if r.blue > max_round.blue {
+                max_round.blue = r.blue;
+            }
+            if r.green > max_round.green {
+                max_round.green = r.green;
+            }
+            if r.red > max_round.red {
+                max_round.red = r.red;
+            }
+        }
+        return max_round;
+    }
+}
+
+impl Round {
+    fn get_power(&self) -> usize {
+        self.blue * self.red * self.green
     }
 }
