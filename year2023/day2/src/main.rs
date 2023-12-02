@@ -72,7 +72,7 @@ impl fmt::Display for Game {
 impl Game {
     fn possible_for(&self, round: &Round) -> bool {
         for r in self.rounds.iter() {
-            if r.blue > round.blue || r.green > round.green || r.red > round.green {
+            if r.blue > round.blue || r.green > round.green || r.red > round.red {
                 return false;
             }
         }
