@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use input;
 
 #[derive(Copy, Clone, Debug)]
@@ -9,6 +11,10 @@ struct Loc {
 impl Loc {
     fn new(x: usize, y: usize) -> Self {
         Self { x, y }
+    }
+
+    fn as_index(&self) -> String {
+        format!("x{}y{}", self.x, self.y)
     }
 }
 
@@ -39,7 +45,7 @@ impl Number {
             .unwrap()
     }
 
-    fn is_adjacent_to_symbol(&self, schematic: Vec<Vec<char>>) -> bool {
+    fn get_search_space(&self, schematic: Vec<Vec<char>>) -> (Loc, Loc) {
         let mut start_y = 0;
         let mut start_x = 0;
         if self.started_at.y > 0 {
@@ -59,16 +65,22 @@ impl Number {
             end_y = schematic.len() - 1;
         }
 
-        for x in start_x..end_x + 1 {
-            for y in start_y..end_y + 1 {
+        (Loc::new(start_x, start_y), Loc::new(end_x, end_y))
+    }
+
+    fn is_adjacent_to_symbol(&self, schematic: Vec<Vec<char>>) -> Option<(char, Loc)> {
+        let (start, end) = self.get_search_space(schematic.clone());
+
+        for x in start.x..end.x + 1 {
+            for y in start.y..end.y + 1 {
                 match schematic[y][x] {
-                    '0'..='9' | '.' => {}, // ignore numbers and dots
-                    _ => return true,
+                    '0'..='9' | '.' => {} // ignore numbers and dots
+                    c => return Some((c, Loc::new(x, y))),
                 }
             }
         }
 
-        false
+        None
     }
 }
 
@@ -81,8 +93,11 @@ impl Number {
 fn main() {
     let i = input::get_input_lines();
 
+    // println!("{}", i);
+
     let mut schematic: Vec<Vec<char>> = vec![];
     let mut found_numbers: Vec<Number> = vec![];
+    let mut found_gears: Vec<Loc> = vec![];
     for (i, line) in i.lines().enumerate() {
         schematic.push(vec![]);
         let mut peekable_chars = line.chars().peekable();
@@ -93,6 +108,10 @@ fn main() {
                 Some(c) => {
                     // keep track of individual characters
                     schematic[i].push(c);
+
+                    if c == '*' {
+                        found_gears.push(Loc::new(j, i));
+                    }
 
                     // collect all digits of the number
                     if ('0'..='9').contains(&c) {
@@ -129,12 +148,32 @@ fn main() {
         }
     }
 
+    let mut numbers_near_gears: HashMap<String, Vec<Number>> = HashMap::new();
     let mut total = 0;
-    for number in found_numbers {
-        if number.is_adjacent_to_symbol(schematic.clone()) {
+    for number in found_numbers.clone() {
+        let adjacent_symbol = number.is_adjacent_to_symbol(schematic.clone());
+        if adjacent_symbol.is_some() {
             total += number.get_number();
+            match adjacent_symbol.unwrap() {
+                ('*', l) => {
+                    let index = l.as_index();
+                    numbers_near_gears.entry(index).and_modify(|v| v.push(number.clone())).or_insert(vec![number]);
+                }
+                _ => {}
+            }
         }
     }
-
+    // Found 556057
     println!("Sum of numbers adjecent to symbol: {}", total);
+
+    let mut gear_total = 0;
+    for (_, gear) in found_gears.clone().iter().enumerate() {
+        let index = gear.as_index();
+        match numbers_near_gears.get(&index) {
+            Some(v) if v.len() == 2 => gear_total += v.clone().iter().map(|n|n.get_number()).product::<usize>(),
+            _ => {}
+        }
+    }
+    // Found 82824352
+    println!("Sum of products of gears: {}", gear_total);
 }
