@@ -19,3 +19,8 @@
 
 # Go workspace file
 go.work
+
+# Ignore workspace files
+shell.nix
+.envrc
+.direnv
