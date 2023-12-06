@@ -9,7 +9,23 @@ fn main() {
     let seeds_numbers = seeds_line.split("seeds: ");
 
     let coll = parse_numbers(&seeds_numbers.last().unwrap().to_string());
-    let seeds = coll.iter();
+    let mut seed_input_ranges = coll.iter();
+
+    let mut seed_ranges = vec![];
+    loop {
+        let first = seed_input_ranges.next();
+        let second = seed_input_ranges.next();
+
+        if first.is_none() || second.is_none() {
+            break;
+        }
+
+        let seed = *first.unwrap();
+        let range = *second.unwrap();
+
+        seed_ranges.push(MappingRange::new(seed, 0, range));
+    }
+    println!("Analyzing {} seed ranges", seed_ranges.len());
 
     lines.next(); // skip empty line
     
@@ -21,14 +37,37 @@ fn main() {
     }
 
     let mut closest_location = None;
-    for seed in seeds {
+    for seed in seed_ranges {
+        todo!();
+
+        // Questions to answer:
+        // 1. How to get from Seed -> Location for a range
+        // 2. Can we analyze the mapping to create a list of SeedRange -> LocationRange?
+        //  1. [[0, Inf] -> [0, Inf]]
+        //  2. [[0,10] -> [0,10]]
+        //  3. [[11,15] -> [13-17]]
+        //
+        //  From example
+        //  Seed->Soil
+        //  0-48 -> 0-49
+        //  49-97 -> 52-100
+        //  98-99 -> 50-51
+        //  Soil->Fert
+        //  0-14 -> 39->54
+        //  15-51 -> 0-37
+        //  52-53 -> 37-38
+        //  54-Inf -> 54->Inf
+        //
+        //  Then eventually
+        //  Seed [0-49] -> Loc [?? - ??]
+
         let mut from_category = Category::Seed;
-        let mut from = *seed;
+        let mut from = seed;
         let looking_for = Category::Location;
         loop {
             // dbg!(&segments_by_from, from_category);
             let segment = segments_by_from.get(&from_category).unwrap();
-            let to = segment.mapping.get_destination(from);
+            let to = segment.mapping.get_destination_by_range(from);
             if segment.to == looking_for {
                 if closest_location.is_none() || to < closest_location.unwrap() {
                     closest_location = Some(to);
@@ -40,7 +79,7 @@ fn main() {
             from_category = segment.to;
         }
     }
-    println!("Closest={}", closest_location.unwrap());
+    dbg!(closest_location.unwrap());
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -121,6 +160,11 @@ impl Mapping {
         }
 
         0
+    }
+
+    fn get_destination_by_range(&self, from: MappingRange) -> MappingRange {
+        todo!();
+
     }
 }
 
