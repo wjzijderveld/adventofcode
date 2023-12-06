@@ -37,4 +37,31 @@ fn main() {
         total *= ways_to_win;
     }
     dbg!(total);
+
+    // part 2
+    // 1. find min speed + seconds needed
+    // 2. find max speed that still leaves enough time
+    //
+    // approaches
+    //   - approach from both sides, start with big steps and make them smaller until exact match?
+    //   - min = round_up(distance/time)?
+    //   - max = time - min?
+    //
+    // Wrong answers
+    // - 32001936 - too high
+
+    fn reduce_string(a: String, b: String) -> String {
+        let mut o = a.to_owned();
+        o.push_str(b.as_str());
+        return o;
+    }
+    let big_game_time: i64 = times.iter().map(|c| c.to_string() ).reduce(reduce_string).unwrap().parse().unwrap();
+    let big_game_record: i64 = records.iter().map(|c| c.to_string() ).reduce(reduce_string).unwrap().parse().unwrap();
+
+    dbg!(big_game_time, big_game_record);
+
+    let min = big_game_record / big_game_time + (big_game_record % big_game_time).signum();
+    let max = big_game_time - min;
+
+    dbg!(min, max, max-min+1);
 }
