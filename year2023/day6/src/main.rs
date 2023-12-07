@@ -60,6 +60,7 @@ fn main() {
 
     dbg!(big_game_time, big_game_record);
 
+    // round up
     let min = big_game_record / big_game_time + (big_game_record % big_game_time).signum();
     let max = big_game_time - min;
 
