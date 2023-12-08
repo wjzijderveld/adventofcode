@@ -48,7 +48,7 @@ impl Hand {
     }
 
     // returns it's type and an Option for the Highcard
-    fn get_type(&self) -> (Type, Option<Card>) {
+    fn get_type(&self) -> Type {
         // let mut ordered_cards = self.cards.clone();
         // ordered_cards.sort_by(|a, b| b.value().cmp(&a.value()));
 
@@ -59,13 +59,13 @@ impl Hand {
 
         let mut saw_three = false;
         let mut saw_two = 0;
-        for (char, count) in map {
+        for (_, count) in map {
             if count == 5 {
-                return (Type::FiveOfAKind, None);
+                return Type::FiveOfAKind;
             }
 
             if count == 4 {
-                return (Type::FourOfAKind, None);
+                return Type::FourOfAKind;
             }
 
             if count == 3 {
@@ -78,25 +78,22 @@ impl Hand {
         }
 
         if saw_three && saw_two == 1 {
-            return (Type::FullHouse, None);
+            return Type::FullHouse;
         }
 
         if saw_three {
-            return (Type::ThreeOfAKind, None);
+            return Type::ThreeOfAKind;
         }
 
         if saw_two == 2 {
-            return (Type::TwoPair, None);
+            return Type::TwoPair;
         }
 
         if saw_two == 1 {
-            return (Type::OnePair, None);
+            return Type::OnePair;
         }
 
-        let mut sorted = self.cards.clone();
-        sorted.sort_by(|a,b| b.value().cmp(&a.value()));
-
-        (Type::HighCard, sorted.first().cloned())
+        Type::HighCard
     }
 
     fn to_string(&self) -> String {
@@ -118,6 +115,7 @@ impl Ord for Hand {
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        // debug_cmp(self.clone(), other.clone());
         if self.get_type() > other.get_type() {
             return Some(Ordering::Greater);
         }
@@ -128,14 +126,39 @@ impl PartialOrd for Hand {
 
         let zipped = self.cards.iter().zip(other.cards.iter());
 
-        for (a, b) in zipped {
-            if a.value() != b.value() {
-                return Some(b.value().cmp(&a.value()));
+        for (sz, oz) in zipped {
+            if sz.value() != oz.value() {
+                return Some(oz.value().cmp(&sz.value()));
             }
         }
 
         return Some(Ordering::Equal);
     }
+}
+
+#[allow(dead_code)]
+fn debug_cmp(s: Hand, o: Hand) {
+    let ss = s.to_string();
+    let os = o.to_string();
+
+    if ss != "QQQJA" && ss != "T55J5" {
+        return;
+    }
+    if os != "QQQJA" && os != "T55J5" {
+        return;
+    }
+
+    dbg!(ss, os, s.get_type() > o.get_type());
+
+    let zipped = s.cards.iter().zip(o.cards.iter());
+
+    for (sz, oz) in zipped {
+        if sz.value() != oz.value() {
+            dbg!(sz.sign, oz.sign, oz.value().cmp(&sz.value()));
+            return;
+        }
+    }
+    dbg!(Ordering::Equal);
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Debug, Clone)]
@@ -157,7 +180,7 @@ impl Card {
     }
 }
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd)]
 enum Type {
     FiveOfAKind,
     FourOfAKind,
