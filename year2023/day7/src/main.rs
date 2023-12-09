@@ -1,8 +1,14 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 
-// Wrong guesses
+// Wrong guesses part 1
 // - 248857578
+//
+// Part 2:
+// - 248829743 - too high
+// - 248303660 - too low
+// - 248820566 - too high
+// - 248438364 = no indication
 fn main() {
     let input = input::get_input_lines();
     let lines = input.lines();
@@ -26,6 +32,7 @@ fn main() {
     let mut rank = ordered.len();
     let mut score = 0;
     for hand in ordered {
+        println!("Hand={} Type={:?}", hand.to_string(), hand.get_type());
         score += hand.bid * rank;
         rank -= 1
     }
@@ -36,7 +43,7 @@ fn main() {
 struct Hand {
     cards: Vec<Card>,
     // possible should not be part of Hand
-    bid: usize, 
+    bid: usize,
 }
 
 impl Hand {
@@ -47,49 +54,81 @@ impl Hand {
         }
     }
 
-    // returns it's type and an Option for the Highcard
+    // returns it's type
     fn get_type(&self) -> Type {
-        // let mut ordered_cards = self.cards.clone();
-        // ordered_cards.sort_by(|a, b| b.value().cmp(&a.value()));
-
-        let mut map: HashMap<char, usize> = HashMap::new();
+        let mut face_count: HashMap<char, usize> = HashMap::new();
         for card in self.cards.iter() {
-            map.entry(card.sign).and_modify(|c| *c += 1).or_insert(1);
+            face_count.entry(card.sign).and_modify(|c| *c += 1).or_insert(1);
         }
 
+        let m = face_count.clone();
+        let joker_count = *m.get(&'J').or(Some(&0)).unwrap();
+
+        let mut saw_four = false;
         let mut saw_three = false;
-        let mut saw_two = 0;
-        for (_, count) in map {
+        let mut saw_twos: usize = 0;
+        for (&sign, &count) in face_count.iter() {
             if count == 5 {
+                // never gonna get better than this
                 return Type::FiveOfAKind;
             }
 
-            if count == 4 {
+            saw_four = saw_four || count == 4;
+            saw_three = saw_three || count == 3;
+            if count == 2 {
+                saw_twos += 1;
+            }
+        }
+
+        // 4+1 => jokers can be either the 4 or the leftover
+        if saw_four {
+            if joker_count > 0 {
+                return Type::FiveOfAKind;
+            }
+
+            return Type::FourOfAKind;
+        }
+
+
+        if saw_three {
+            if saw_twos > 0 {
+                // if either the two or the three were all jokers we can make a FiveOfAKind
+                if (2..=3).contains(&joker_count) {
+                    return Type::FiveOfAKind;
+                }
+                return Type::FullHouse;
+            }
+
+            // if the three are jokers, we can make a FourOfAKind (FiveOfAKind was already checked)
+            if joker_count == 3 {
                 return Type::FourOfAKind;
             }
 
-            if count == 3 {
-                saw_three = true;
+            // if there's jokers and it's not the three itself, we can make a full house
+            if joker_count > 0 {
+                return Type::FullHouse;
             }
 
-            if count == 2 {
-                saw_two += 1;
-            }
-        }
-
-        if saw_three && saw_two == 1 {
-            return Type::FullHouse;
-        }
-
-        if saw_three {
             return Type::ThreeOfAKind;
         }
 
-        if saw_two == 2 {
-            return Type::TwoPair;
+        if saw_twos > 0 {
+            if saw_twos == 2 && joker_count > 0  {
+                return Type::FullHouse;
+            }
+
+            if joker_count > 0 {
+                return Type::ThreeOfAKind;
+            }
+
+            if saw_twos == 2 {
+                return Type::TwoPair;
+            }
+
+            return Type::OnePair;
         }
 
-        if saw_two == 1 {
+        if joker_count > 0 {
             return Type::OnePair;
         }
 
@@ -171,7 +210,7 @@ impl Card {
         match self.sign {
             c if ('1'..='9').contains(&c) => c.to_digit(10).unwrap() as usize,
             'T' => 10,
-            'J' => 11,
+            'J' => 0,
             'Q' => 12,
             'K' => 13,
             'A' => 14,
