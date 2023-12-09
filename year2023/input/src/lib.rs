@@ -26,3 +26,7 @@ fn path(file: &str) -> String {
 fn file_exists(file: &str) -> bool {
     fs::metadata(file).is_ok()
 }
+
+pub fn lap(name: String, started_at: std::time::Instant) {
+    println!("{} => {}ms", name, started_at.elapsed().as_millis());
+}
