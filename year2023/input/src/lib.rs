@@ -1,22 +1,28 @@
 use std::{env, process, fs};
 
 pub fn get_input_lines() -> String {
-    let file: &str = match env::var("USE_EXAMPLE") {
-        Ok(s) => match s.as_str() {
-            "part2" => "src/example2.txt",
-            _ => "src/example.txt",
-        },
-        Err(_) => "src/input.txt",
+    let file: String = match env::var("USE_EXAMPLE") {
+        Ok(s) if file_exists(path(&s).as_str()) => path(&s),
+        Ok(_) => String::from("src/example.txt"),
+        Err(_) => String::from("src/input.txt"),
     };
 
-let path = format!("{}", file);
-    let input = match fs::read_to_string(path.clone()) {
+    println!("Using {}", file);
+    let input = match fs::read_to_string(file.clone()) {
         Ok(s) => s,
         Err(_) => {
-            println!("unable to find file {}", path);
+            println!("unable to find file {}", file);
             process::exit(1);
         }
     };
     
     return input;
+}
+
+fn path(file: &str) -> String {
+    "src/".to_owned() + file + ".txt"
+}
+
+fn file_exists(file: &str) -> bool {
+    fs::metadata(file).is_ok()
 }
